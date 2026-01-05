@@ -1,0 +1,16 @@
+{
+  "lsu.name": "Lifesteal Utils",
+  "lsu.option.pmFormat.name": "Private Message Format",
+  "lsu.option.pmFormatEnabled.name": "Use Custom Private Message Format",
+  "lsu.option.claimChatFormat.name": "Claim Chat Format",
+  "lsu.option.claimChatFormatEnabled.name": "Use Custom Claim Chat Format",
+  "lsu.group.messageCustomization": "Message Customization",
+  "lsu.category.customization": "Customization",
+  "lsu.category.main": "General Utilities",
+  "lsu.group.titleScreen": "Title Screen",
+  "lsu.option.quickJoinButtonEnabled.name": "Quick Join Button Enabled",
+  "lsu.group.simplications": "Simplifications",
+  "lsu.option.disableChatTags.name": "Disable Chat Tags",
+  "lsu.option.removeUniquePlusColor.name": "Force LSN+ Indicator to Follow Rank Color Schema",
+  "lsu.option.customSplashes.name": "Use Custom Splash Texts"
+}

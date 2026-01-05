@@ -1,8 +1,11 @@
+import java.net.URI
+
 plugins {
     id("net.fabricmc.fabric-loom-remap")
 
     // `maven-publish`
     // id("me.modmuss50.mod-publish-plugin")
+    id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.22"
 }
 
 version = "${property("mod.version")}+${sc.current.version}"
@@ -26,6 +29,16 @@ repositories {
     }
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
+
+    maven {
+        name = "Terraformers"
+        url = URI.create("https://maven.terraformersmc.com/")
+    }
+
+    maven {
+        name = "Xander Maven"
+        url = URI.create("https://maven.isxander.dev/releases")
+    }
 }
 
 dependencies {
@@ -33,6 +46,7 @@ dependencies {
      * Fetches only the required Fabric API modules to not waste time downloading all of them for each version.
      * @see <a href="https://github.com/FabricMC/fabric">List of Fabric API modules</a>
      */
+    // unused for now
     fun fapi(vararg modules: String) {
         for (it in modules) modImplementation(fabricApi.module(it, property("deps.fabric_api") as String))
     }
@@ -40,8 +54,12 @@ dependencies {
     minecraft("com.mojang:minecraft:${sc.current.version}")
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-
-    fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0")
+    modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    modImplementation("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modImplementation("net.kyori:adventure-platform-fabric:${property("deps.adventure")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    include("net.kyori:adventure-platform-fabric:${property("deps.adventure")}")
+    //fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0")
 }
 
 loom {

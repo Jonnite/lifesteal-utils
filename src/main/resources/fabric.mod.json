@@ -3,28 +3,45 @@
   "id": "${id}",
   "version": "${version}",
   "name": "${name}",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "Utilities for the Lifesteal Network",
   "authors": [
-    "Me!"
+    "Candycup"
+  ],
+  "contributors": [
+    "_milkmc (Early Feedback & Feature Ideas)",
+    "linnyflower (Contributing Custom Enchantments for Testing)"
   ],
   "contact": {
-    "homepage": "https://stonecutter.kikugie.dev/",
-    "sources": "https://codeberg.org/stonecutter/template-fabric"
+    "homepage": "https://discord.gg/qmWYNtRzEg",
+    "sources": "https://github.com/karkkikuppi/lifesteal-utils"
   },
-  "license": "CC0-1.0",
-  "icon": "assets/template/icon.png",
-  "environment": "*",
+  "license": "MIT",
+  "icon": "assets/lifesteal-utils/icon.png",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "com.example.TemplateMod"
+    "client": [
+      "dev.candycup.lifestealutils.LifestealUtils"
+    ],
+    "modmenu": [
+      "dev.candycup.lifestealutils.integrations.modmenu.ModMenuIntegration"
     ]
   },
   "mixins": [
-    "template.mixins.json"
+    "lifesteal-utils.mixins.json"
   ],
-  "accessWidener": "template.accesswidener",
   "depends": {
-    "fabricloader": ">=0.17",
-    "minecraft": "${minecraft}"
+    "fabricloader": ">=0.18.3",
+    "minecraft": "${minecraft}",
+    "java": ">=21",
+    "fabric-api": "*",
+    "yet_another_config_lib_v3": ">=3.3.0"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [],
+      "links": {
+        "modmenu.discord": "https://discord.gg/qmWYNtRzEg"
+      }
+    }
   }
 }

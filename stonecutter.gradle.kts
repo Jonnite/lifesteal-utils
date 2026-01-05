@@ -25,5 +25,9 @@ stonecutter parameters {
         string(current.parsed >= "1.21.11") {
             replace("ResourceLocation", "Identifier")
         }
+        string(current.parsed <= "1.21.8") {
+            // used in context of GLFW.glfwGetMouseButton
+            replace("getWindow().handle()", "getWindow().getWindow()")
+        }
     }
 }
