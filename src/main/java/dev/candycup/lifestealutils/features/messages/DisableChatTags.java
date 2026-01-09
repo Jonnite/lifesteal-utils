@@ -106,17 +106,6 @@ public final class DisableChatTags {
       return cleaned.replaceAll("[\\s\\u00A0]+", " ").trim();
    }
 
-   private static final class BracketSpan {
-      final int visibleStart;
-      final int visibleEnd;
-      final int rawStart;
-      final int rawEnd;
-
-      BracketSpan(int visibleStart, int visibleEnd, int rawStart, int rawEnd) {
-         this.visibleStart = visibleStart;
-         this.visibleEnd = visibleEnd;
-         this.rawStart = rawStart;
-         this.rawEnd = rawEnd;
-      }
+   private record BracketSpan(int visibleStart, int visibleEnd, int rawStart, int rawEnd) {
    }
 }

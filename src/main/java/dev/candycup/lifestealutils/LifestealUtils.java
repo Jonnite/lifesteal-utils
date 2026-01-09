@@ -1,6 +1,7 @@
 package dev.candycup.lifestealutils;
 
 //? if >1.21.8
+
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.candycup.lifestealutils.hud.HudDisplayLayer;
 import dev.candycup.lifestealutils.hud.HudElementDefinition;
@@ -33,7 +34,7 @@ public final class LifestealUtils implements ClientModInitializer {
       Config.load();
 
       HudElementManager.init();
-        BasicTimerManager.configure(FeatureFlagController.getBasicTimers());
+      BasicTimerManager.configure(FeatureFlagController.getBasicTimers());
       for (HudElementDefinition definition : BasicTimerManager.hudDefinitions()) {
          HudElementManager.register(definition);
       }
@@ -77,30 +78,30 @@ public final class LifestealUtils implements ClientModInitializer {
                     net.minecraft.network.chat.Component.literal("HUD Element Editor")
             ));
          }
-                        BasicTimerManager.tick();
+         BasicTimerManager.tick();
       });
 
       ClientCommandRegistrationCallback.EVENT.register((dispatcher, registry) -> {
          dispatcher.register(
                  ClientCommandManager.literal("lsu")
                          .executes(commandContext -> {
-                             Minecraft client = Minecraft.getInstance();
-                             client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
-                             return 1;
+                            Minecraft client = Minecraft.getInstance();
+                            client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
+                            return 1;
                          })
                          .then(ClientCommandManager.literal("config")
                                  .executes(commandContext -> {
-                                     Minecraft client = Minecraft.getInstance();
-                                     client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
-                                     return 1;
+                                    Minecraft client = Minecraft.getInstance();
+                                    client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
+                                    return 1;
                                  }))
                          .then(ClientCommandManager.literal("edit-hud")
                                  .executes(commandContext -> {
-                                     Minecraft client = Minecraft.getInstance();
-                                     client.execute(() -> client.setScreen(new HudElementEditor(
-                                             net.minecraft.network.chat.Component.literal("HUD Element Editor")
-                                     )));
-                                     return 1;
+                                    Minecraft client = Minecraft.getInstance();
+                                    client.execute(() -> client.setScreen(new HudElementEditor(
+                                            net.minecraft.network.chat.Component.literal("HUD Element Editor")
+                                    )));
+                                    return 1;
                                  }))
          );
       });

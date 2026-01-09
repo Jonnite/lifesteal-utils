@@ -28,102 +28,102 @@ public class Config {
                    .build())
            .build();
 
-        @SerialEntry(comment = "Whether to enable custom private message formatting")
-        public static boolean enablePmFormat = false;
+   @SerialEntry(comment = "Whether to enable custom private message formatting")
+   public static boolean enablePmFormat = false;
 
    @SerialEntry(comment = "Customize the format of private messages (/msg, /r)")
    public static String pmFormat = "<light_purple><bold>{{direction}}</bold> {{sender}}</light_purple> <white>➡ {{message}}</white>";
 
-        @SerialEntry(comment = "Whether to enable custom claim chat formatting")
-        public static boolean enableClaimChatFormat = false;
+   @SerialEntry(comment = "Whether to enable custom claim chat formatting")
+   public static boolean enableClaimChatFormat = false;
 
-        @SerialEntry(comment = "Customize the format of claim chat messages")
-        public static String claimChatFormat = "<gold><bold>{{claim}}</bold></gold> <dark_gray>|</dark_gray> <aqua>{{username}}</aqua><gray>:</gray> <white>{{message}}</white>";
+   @SerialEntry(comment = "Customize the format of claim chat messages")
+   public static String claimChatFormat = "<gold><bold>{{claim}}</bold></gold> <dark_gray>|</dark_gray> <aqua>{{username}}</aqua><gray>:</gray> <white>{{message}}</white>";
 
    @SerialEntry(comment = "Quick Join button on the title screen")
    public static boolean quickJoinButtonEnabled = true;
 
    @SerialEntry(comment = "Disables chat tags, such as [No-Life] from appearing in messages for visual simplicity.")
-        public static boolean disableChatTags = false;
+   public static boolean disableChatTags = false;
 
    @SerialEntry(comment = "Removes the unique coloring of the plus in LSN+ for visual simplicity.")
-        public static boolean removeUniquePlusColor = false;
+   public static boolean removeUniquePlusColor = false;
 
    @SerialEntry(comment = "Whether to enable custom splashes on the title screen")
-    public static boolean customSplashes = true;
+   public static boolean customSplashes = true;
 
-        @SerialEntry(comment = "Per-timer enabled state keyed by timer id")
-        public static Map<String, Boolean> basicTimerEnabled = new HashMap<>();
+   @SerialEntry(comment = "Per-timer enabled state keyed by timer id")
+   public static Map<String, Boolean> basicTimerEnabled = new HashMap<>();
 
-                @SerialEntry(comment = "Per-timer format overrides keyed by timer id")
-                public static Map<String, String> basicTimerFormatOverrides = new HashMap<>();
+   @SerialEntry(comment = "Per-timer format overrides keyed by timer id")
+   public static Map<String, String> basicTimerFormatOverrides = new HashMap<>();
 
    private static OptionDescription descriptionWithRemoteReasoning(String baseMiniMessage, String featureKey) {
       OptionDescription.Builder builder = OptionDescription.createBuilder()
               .text(MessagingUtils.miniMessage(baseMiniMessage));
-        String reasoning = FeatureFlagController.getReasoning(featureKey);
+      String reasoning = FeatureFlagController.getReasoning(featureKey);
       if (reasoning != null && !reasoning.isBlank()) {
          builder.text(MessagingUtils.miniMessage(reasoning));
       }
       return builder.build();
    }
 
-        private static OptionGroup buildTimerOptions() {
-                OptionGroup.Builder group = OptionGroup.createBuilder()
-                                  .name(Component.literal("Timers"));
+   private static OptionGroup buildTimerOptions() {
+      OptionGroup.Builder group = OptionGroup.createBuilder()
+              .name(Component.literal("Timers"));
 
-                List<BasicTimerManager.TimerEntry> timers = BasicTimerManager.timerEntries();
+      List<BasicTimerManager.TimerEntry> timers = BasicTimerManager.timerEntries();
 
-                timers.forEach(entry -> {
-                        String id = entry.id();
-                        ensureBasicTimerKnown(id);
-                        ensureBasicTimerFormat(id, entry.definition().defaultFormat());
-                        String label = entry.definition().toggleOption() != null && !entry.definition().toggleOption().isBlank()
-                                          ? entry.definition().toggleOption()
-                                          : entry.definition().name();
+      timers.forEach(entry -> {
+         String id = entry.id();
+         ensureBasicTimerKnown(id);
+         ensureBasicTimerFormat(id, entry.definition().defaultFormat());
+         String label = entry.definition().toggleOption() != null && !entry.definition().toggleOption().isBlank()
+                 ? entry.definition().toggleOption()
+                 : entry.definition().name();
 
-                        group.option(Option.<Boolean>createBuilder()
-                                          .name(Component.literal(label))
-                                          .binding(false, () -> isBasicTimerEnabled(id), enabled -> setBasicTimerEnabled(id, enabled))
-                                          .controller(TickBoxControllerBuilder::create)
-                                          .build());
-                });
+         group.option(Option.<Boolean>createBuilder()
+                 .name(Component.literal(label))
+                 .binding(false, () -> isBasicTimerEnabled(id), enabled -> setBasicTimerEnabled(id, enabled))
+                 .controller(TickBoxControllerBuilder::create)
+                 .build());
+      });
 
-                timers.forEach(entry -> {
-                        String id = entry.id();
-                        String label = entry.definition().name() + " Format";
-                        String fallback = entry.definition().defaultFormat();
+      timers.forEach(entry -> {
+         String id = entry.id();
+         String label = entry.definition().name() + " Format";
+         String fallback = entry.definition().defaultFormat();
 
-                        group.option(Option.<String>createBuilder()
-                                          .name(Component.literal(label))
-                                          .binding(getBasicTimerFormat(id, fallback), () -> getBasicTimerFormat(id, fallback), format -> setBasicTimerFormat(id, format))
-                                          .controller(StringControllerBuilder::create)
-                                          .build());
-                });
+         group.option(Option.<String>createBuilder()
+                 .name(Component.literal(label))
+                 .binding(getBasicTimerFormat(id, fallback), () -> getBasicTimerFormat(id, fallback), format -> setBasicTimerFormat(id, format))
+                 .controller(StringControllerBuilder::create)
+                 .build());
+      });
 
-                return group.build();
-        }
+      return group.build();
+   }
 
    public static void setPmFormat(String format) {
       Config.pmFormat = format;
    }
 
-        public static boolean getEnableClaimChatFormat() {
-                return Config.enableClaimChatFormat;
-        }
+   public static boolean getEnableClaimChatFormat() {
+      return Config.enableClaimChatFormat;
+   }
 
-        public static void setEnableClaimChatFormat(boolean enable) {
-                Config.enableClaimChatFormat = enable;
-                HANDLER.save();
-        }
+   public static void setEnableClaimChatFormat(boolean enable) {
+      Config.enableClaimChatFormat = enable;
+      HANDLER.save();
+   }
 
-        public static String getClaimChatFormat() {
-                return Config.claimChatFormat;
-        }
+   public static String getClaimChatFormat() {
+      return Config.claimChatFormat;
+   }
 
-        public static void setClaimChatFormat(String format) {
-                Config.claimChatFormat = format;
-        }
+   public static void setClaimChatFormat(String format) {
+      Config.claimChatFormat = format;
+   }
 
    public static boolean getEnablePmFormat() {
       return Config.enablePmFormat;
@@ -161,52 +161,52 @@ public class Config {
       HANDLER.save();
    }
 
-    public static boolean getCustomSplashes() {
-        return Config.customSplashes;
-    }
+   public static boolean getCustomSplashes() {
+      return Config.customSplashes;
+   }
 
-    public static void setCustomSplashes(boolean enabled) {
-        Config.customSplashes = enabled;
-        HANDLER.save();
-    }
+   public static void setCustomSplashes(boolean enabled) {
+      Config.customSplashes = enabled;
+      HANDLER.save();
+   }
 
-        public static boolean isBasicTimerEnabled(String id) {
-                return basicTimerEnabled.getOrDefault(id, false);
-        }
+   public static boolean isBasicTimerEnabled(String id) {
+      return basicTimerEnabled.getOrDefault(id, false);
+   }
 
-        public static void setBasicTimerEnabled(String id, boolean enabled) {
-                basicTimerEnabled.put(id, enabled);
-                HANDLER.save();
-        }
+   public static void setBasicTimerEnabled(String id, boolean enabled) {
+      basicTimerEnabled.put(id, enabled);
+      HANDLER.save();
+   }
 
-        public static void ensureBasicTimerKnown(String id) {
-                basicTimerEnabled.putIfAbsent(id, false);
-        }
+   public static void ensureBasicTimerKnown(String id) {
+      basicTimerEnabled.putIfAbsent(id, false);
+   }
 
-        public static String getBasicTimerFormat(String id, String fallback) {
-                String value = basicTimerFormatOverrides.get(id);
-                if (value == null || value.isBlank()) {
-                        return fallback;
-                }
-                return value;
-        }
+   public static String getBasicTimerFormat(String id, String fallback) {
+      String value = basicTimerFormatOverrides.get(id);
+      if (value == null || value.isBlank()) {
+         return fallback;
+      }
+      return value;
+   }
 
-        public static void setBasicTimerFormat(String id, String format) {
-                basicTimerFormatOverrides.put(id, format);
-                HANDLER.save();
-        }
+   public static void setBasicTimerFormat(String id, String format) {
+      basicTimerFormatOverrides.put(id, format);
+      HANDLER.save();
+   }
 
-        public static void ensureBasicTimerFormat(String id, String fallback) {
-                basicTimerFormatOverrides.putIfAbsent(id, fallback);
-        }
+   public static void ensureBasicTimerFormat(String id, String fallback) {
+      basicTimerFormatOverrides.putIfAbsent(id, fallback);
+   }
 
-        public static void load() {
-                FeatureFlagController.ensureLoaded();
-                HANDLER.load();
-        }
+   public static void load() {
+      FeatureFlagController.ensureLoaded();
+      HANDLER.load();
+   }
 
-        public static YetAnotherConfigLib getConfig() {
-                FeatureFlagController.ensureLoaded();
+   public static YetAnotherConfigLib getConfig() {
+      FeatureFlagController.ensureLoaded();
       return YetAnotherConfigLib.createBuilder()
               .title(Component.translatable("lsu.name"))
               .category(ConfigCategory.createBuilder()
