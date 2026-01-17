@@ -34,6 +34,7 @@ public final class LifestealUtils implements ClientModInitializer {
    private static KeyMapping.Category LIFESTEAL_UTIL_BINDS;
    private static KeyMapping openHudEditorKeyBinding;
    private static KeyMapping addAllianceTargetKeyBinding;
+   private static int pendingConfigOpenTicks = -1;
 
    @Override
    public void onInitializeClient() {
@@ -90,6 +91,14 @@ public final class LifestealUtils implements ClientModInitializer {
 
       ClientTickEvents.END_CLIENT_TICK.register(client -> {
          if (client.player == null) return;
+         if (pendingConfigOpenTicks >= 0) {
+            if (pendingConfigOpenTicks == 0) {
+               client.setScreen(Config.getConfigScreen(client.screen));
+               pendingConfigOpenTicks = -1;
+            } else {
+               pendingConfigOpenTicks--;
+            }
+         }
          if (openHudEditorKeyBinding.consumeClick()) {
             if (client.screen != null) return;
             client.setScreen(new HudElementEditor(
@@ -123,13 +132,13 @@ public final class LifestealUtils implements ClientModInitializer {
                  ClientCommandManager.literal("lsu")
                          .executes(commandContext -> {
                             Minecraft client = Minecraft.getInstance();
-                            client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
+                            client.execute(() -> pendingConfigOpenTicks = 2);
                             return 1;
                          })
                          .then(ClientCommandManager.literal("config")
                                  .executes(commandContext -> {
                                     Minecraft client = Minecraft.getInstance();
-                                    client.execute(() -> client.setScreen(Config.getConfigScreen(client.screen)));
+                                    client.execute(() -> pendingConfigOpenTicks = 2);
                                     return 1;
                                  }))
                          .then(ClientCommandManager.literal("edit-hud")
