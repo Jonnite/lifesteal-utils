@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(Player.class)
 public abstract class PlayerEntityMixin {
    @ModifyReturnValue(method = "getDisplayName", at = @At("RETURN"))
-   public Component prependTier(Component original) {
+   public Component appendWithAllianceColor(Component original) {
       if (!Config.getEnableAlliances()) return original;
       if (!LifestealServerDetector.isOnLifestealServer()) return original;
       if (original == null) return null;
