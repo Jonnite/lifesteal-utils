@@ -163,24 +163,28 @@ public final class LifestealUtils implements ClientModInitializer {
                                          .then(ClientCommandManager.argument("username", StringArgumentType.word())
                                                  .executes(commandContext -> {
                                                     String username = StringArgumentType.getString(commandContext, "username");
-                                                    boolean added = Alliances.addAlliance(username);
-                                                    if (added) {
-                                                       MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<green>Added <white>" + MiniMessage.miniMessage().escapeTags(username) + "</white> to your alliance.</green>"));
-                                                    } else {
-                                                       MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<red>Could not find player <white>" + MiniMessage.miniMessage().escapeTags(username) + "</white>.</red>"));
-                                                    }
+                                                    String escapedUsername = MiniMessage.miniMessage().escapeTags(username);
+                                                    Alliances.addAllianceAsync(username, added -> {
+                                                       if (added) {
+                                                          MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<green>Added <white>" + escapedUsername + "</white> to your alliance.</green>"));
+                                                       } else {
+                                                          MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<red>Could not find player <white>" + escapedUsername + "</white>.</red>"));
+                                                       }
+                                                    });
                                                     return 1;
                                                  })))
                                  .then(ClientCommandManager.literal("remove")
                                          .then(ClientCommandManager.argument("username", StringArgumentType.word())
                                                  .executes(commandContext -> {
                                                     String username = StringArgumentType.getString(commandContext, "username");
-                                                    boolean removed = Alliances.removeAlliance(username);
-                                                    if (removed) {
-                                                       MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<yellow>Removed <white>" + MiniMessage.miniMessage().escapeTags(username) + "</white> from your alliance.</yellow>"));
-                                                    } else {
-                                                       MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<red>Could not find player <white>" + MiniMessage.miniMessage().escapeTags(username) + "</white> in your alliance.</red>"));
-                                                    }
+                                                    String escapedUsername = MiniMessage.miniMessage().escapeTags(username);
+                                                    Alliances.removeAllianceAsync(username, removed -> {
+                                                       if (removed) {
+                                                          MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<yellow>Removed <white>" + escapedUsername + "</white> from your alliance.</yellow>"));
+                                                       } else {
+                                                          MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<red>Could not find player <white>" + escapedUsername + "</white> in your alliance.</red>"));
+                                                       }
+                                                    });
                                                     return 1;
                                                  })))
                                  .then(ClientCommandManager.literal("clear")

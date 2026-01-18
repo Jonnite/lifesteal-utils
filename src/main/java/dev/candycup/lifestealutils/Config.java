@@ -62,6 +62,9 @@ public class Config {
    @SerialEntry(comment = "List of allied player UUIDs")
    public static List<String> allianceUuids = new ArrayList<>();
 
+   @SerialEntry(comment = "Cache of UUID to username mappings for alliance members")
+   public static Map<String, String> uuidUsernameCache = new HashMap<>();
+
    @SerialEntry(comment = "Whether to enable custom splashes on the title screen")
    public static boolean customSplashes = true;
 
@@ -220,6 +223,15 @@ public class Config {
 
    public static void setAllianceUuids(List<String> uuids) {
       Config.allianceUuids = uuids;
+      HANDLER.save();
+   }
+
+   public static Map<String, String> getUuidUsernameCache() {
+      return Config.uuidUsernameCache;
+   }
+
+   public static void setUuidUsernameCache(Map<String, String> cache) {
+      Config.uuidUsernameCache = cache;
       HANDLER.save();
    }
 
