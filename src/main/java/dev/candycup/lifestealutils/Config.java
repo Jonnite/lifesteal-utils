@@ -471,7 +471,6 @@ public class Config {
                               )
                               .build()
                       )
-                      //? if > 1.21.8 {
                       .group(OptionGroup.createBuilder()
                               .name(Component.translatable("lsu.group.rareScale"))
                               .option(Option.<Boolean>createBuilder()
@@ -501,7 +500,6 @@ public class Config {
                               )
                               .build()
                       )
-                      //? }
                       .group(OptionGroup.createBuilder()
                               .name(Component.translatable("lsu.group.simplications"))
                               .option(Option.<Boolean>createBuilder()

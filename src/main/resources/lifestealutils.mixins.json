@@ -7,13 +7,14 @@
   ],
   "client": [
     "AttackTrackerMixin",
+    "ConnectingScreenMixin",
     "DamageListenerMixin",
+    "ItemClusterMixin",
+    "ItemRendererMixin",
     "MessageReceiver",
     "SplashManagerMixin",
     "TabListMixin",
-    "TitleScreenMixin",
-    "ItemRendererMixin",
-    "ItemClusterMixin"
+    "TitleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
