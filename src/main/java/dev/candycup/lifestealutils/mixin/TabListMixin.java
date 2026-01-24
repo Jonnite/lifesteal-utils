@@ -54,13 +54,10 @@ public abstract class TabListMixin {
          String serialized = MiniMessage.miniMessage().serialize(MinecraftClientAudiences.of().asAdventure(result));
 
          boolean hadPlus = serialized.contains("+");
-         serialized = serialized.replace("+", "");
-
-         if (hadPlus) {
-            int index = serialized.indexOf("</");
-            if (index != -1) {
-               serialized = serialized.substring(0, index) + "+" + serialized.substring(index);
-            }
+         int index = serialized.indexOf("</");
+         if (hadPlus && index != -1) {
+            serialized = serialized.replace("+", "");
+            serialized = serialized.substring(0, index) + "+" + serialized.substring(index);
          }
 
          result = MessagingUtils.miniMessage(serialized);

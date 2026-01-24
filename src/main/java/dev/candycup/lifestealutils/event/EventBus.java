@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * central event bus for dispatching events to registered listeners.
@@ -15,7 +16,7 @@ public class EventBus {
     private static final Logger LOGGER = LoggerFactory.getLogger("LifestealUtils/EventBus");
     private static final EventBus INSTANCE = new EventBus();
 
-    private final Map<Class<? extends LSUEvent>, List<LifestealEventListener>> listeners = new ConcurrentHashMap<>();
+    private final Map<Class<? extends LSUEvent>, CopyOnWriteArrayList<LifestealEventListener>> listeners = new ConcurrentHashMap<>();
 
     private EventBus() {}
 
@@ -34,7 +35,7 @@ public class EventBus {
         List<Class<? extends LSUEvent>> eventTypes = discoverEventTypes(listener);
         
         for (Class<? extends LSUEvent> eventType : eventTypes) {
-            listeners.computeIfAbsent(eventType, k -> new ArrayList<>()).add(listener);
+            listeners.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>()).add(listener);
             // sort by priority (high to low)
             listeners.get(eventType).sort((a, b) -> 
                 Integer.compare(b.getPriority().getValue(), a.getPriority().getValue())
@@ -87,6 +88,7 @@ public class EventBus {
 
     /**
      * discover which event types a listener can handle based on implemented interfaces.
+     * walks the class hierarchy to find interfaces implemented by superclasses.
      *
      * @param listener the listener to check
      * @return list of event types the listener handles
@@ -94,12 +96,13 @@ public class EventBus {
     private List<Class<? extends LSUEvent>> discoverEventTypes(LifestealEventListener listener) {
         List<Class<? extends LSUEvent>> eventTypes = new ArrayList<>();
         
-        // check all implemented interfaces
-        for (Class<?> iface : listener.getClass().getInterfaces()) {
-            // map interface to event types
-            if (iface.getPackage() != null && 
-                iface.getPackage().getName().equals("dev.candycup.lifestealutils.event.listener")) {
-                eventTypes.addAll(getEventTypesForInterface(iface));
+        // check all implemented interfaces (including superclasses)
+        for (Class<?> type = listener.getClass(); type != null; type = type.getSuperclass()) {
+            for (Class<?> iface : type.getInterfaces()) {
+                if (iface.getPackage() != null &&
+                    iface.getPackage().getName().equals("dev.candycup.lifestealutils.event.listener")) {
+                    eventTypes.addAll(getEventTypesForInterface(iface));
+                }
             }
         }
         

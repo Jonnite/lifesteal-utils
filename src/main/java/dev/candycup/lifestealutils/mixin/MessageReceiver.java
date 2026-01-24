@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -19,8 +20,16 @@ public class MessageReceiver {
    @Final
    private static Logger LOGGER;
 
+   @Unique
+   private static final ThreadLocal<Boolean> lifestealutils$reentrant =
+         ThreadLocal.withInitial(() -> false);
+
    @Inject(at = @At("HEAD"), method = "addMessage(Lnet/minecraft/network/chat/Component;)V", cancellable = true)
    private void addMessage(Component component, CallbackInfo ci) {
+      if (lifestealutils$reentrant.get()) {
+         return;
+      }
+
       if (!LifestealServerDetector.isOnLifestealServer()) {
          return;
       }
@@ -36,9 +45,15 @@ public class MessageReceiver {
       }
 
       // if the message was modified, show the modified version instead
-      if (event.getModifiedMessage() != component) {
+      Component modified = event.getModifiedMessage();
+      if (modified != null && modified != component) {
          ci.cancel();
-         ((ChatComponent) (Object) this).addMessage(event.getModifiedMessage());
+         lifestealutils$reentrant.set(true);
+         try {
+            ((ChatComponent) (Object) this).addMessage(modified);
+         } finally {
+            lifestealutils$reentrant.set(false);
+         }
       }
    }
 }

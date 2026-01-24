@@ -30,7 +30,7 @@ public class ChatMessageReceivedEvent extends LSUEvent {
      * @param modifiedMessage the new message to display
      */
     public void setModifiedMessage(Component modifiedMessage) {
-        this.modifiedMessage = modifiedMessage;
+        this.modifiedMessage = modifiedMessage != null ? modifiedMessage : message;
     }
 
     @Override

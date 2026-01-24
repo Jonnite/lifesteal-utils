@@ -49,6 +49,6 @@ public class PlayerNameRenderEvent extends LSUEvent {
      * @param displayName the new display name
      */
     public void setModifiedDisplayName(Component displayName) {
-        this.modifiedDisplayName = displayName;
+        this.modifiedDisplayName = displayName != null ? displayName : originalDisplayName;
     }
 }

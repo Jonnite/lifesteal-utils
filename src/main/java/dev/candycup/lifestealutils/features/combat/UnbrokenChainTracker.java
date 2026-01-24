@@ -36,7 +36,7 @@ public final class UnbrokenChainTracker implements CombatEventListener, TickEven
    public static final String CONFIG_ID = "unbroken_chain";
    public static final String DEFAULT_FORMAT = "<gray>Chain:</gray> <gold>{{count}}</gold> <gray>(+{{bonus}}% dmg)</gray>";
    private static final long HIT_CONFIRMATION_TIMEOUT_MS = 500;
-   private static final int MAX_CHAIN = 10; // max tracked chain count
+   private static final int MAX_CHAIN = 12; // max tracked chain count (allows 50% bonus)
    private static final int BONUS_START_CHAIN = 3;
    private static final int BONUS_START_OFFSET = 2;
    private static final int BONUS_PER_HIT = 5;

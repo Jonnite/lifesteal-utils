@@ -40,11 +40,12 @@ public final class QuickJoinButton implements UIEventListener {
                 SpriteIconButton.builder(
                         Component.translatable("menu.options"),
                         (buttonWidget) -> {
-                            Minecraft.getInstance().setScreen(new JoinMultiplayerScreen(screen));
-                            assert Minecraft.getInstance().screen != null;
+                            Minecraft mc = Minecraft.getInstance();
+                            JoinMultiplayerScreen join = new JoinMultiplayerScreen(screen);
+                            mc.setScreen(join);
                             ConnectScreen.startConnecting(
-                                    Minecraft.getInstance().screen,
-                                    Minecraft.getInstance(),
+                                    join,
+                                    mc,
                                     ServerAddress.parseString("lifesteal.net"),
                                     new ServerData(
                                             "Lifesteal Network",

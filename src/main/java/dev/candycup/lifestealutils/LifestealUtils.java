@@ -18,6 +18,7 @@ import dev.candycup.lifestealutils.features.combat.UnbrokenChainTracker;
 import dev.candycup.lifestealutils.features.timers.BasicTimerManager;
 import dev.candycup.lifestealutils.interapi.MessagingUtils;
 import dev.candycup.lifestealutils.ui.HudElementEditor;
+import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -36,6 +37,8 @@ import net.minecraft.world.phys.HitResult;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public final class LifestealUtils implements ClientModInitializer {
    private static final Logger LOGGER = LoggerFactory.getLogger("lifestealutils");
@@ -265,8 +268,28 @@ public final class LifestealUtils implements ClientModInitializer {
                                             }
                                             MessagingUtils.showMiniMessage("<red>Player not available.</red>");
                                             return 0;
-                                         })))
-         );
+                                         }))
+                                 .then(ClientCommandManager.literal("take-panorama-screenshot")
+                                         .executes(commandContext -> {
+                                            Minecraft client = Minecraft.getInstance();
+
+                                            final File GAME_DIR = new File(FabricLoader.getInstance().getGameDir().toString());
+
+                                            client.execute(() -> {
+                                               client.grabPanoramixScreenshot(
+                                                       GAME_DIR
+                                               );
+
+                                               if (client.player != null) {
+                                                  client.player.sendMessage(
+                                                          MiniMessage.miniMessage().deserialize(
+                                                                  "<gray><italic>[Lifesteal Utils] snip snap! panorama taken! open your screenshots folder to see it!"
+                                                          )
+                                                  );
+                                               }
+                                            });
+                                            return 1;
+                                         }))));
       });
    }
 
