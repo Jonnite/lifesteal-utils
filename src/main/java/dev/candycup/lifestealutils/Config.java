@@ -47,6 +47,9 @@ public class Config {
    @SerialEntry(comment = "Quick Join button on the title screen")
    public static boolean quickJoinButtonEnabled = true;
 
+   @SerialEntry(comment = "Custom panorama background on the title screen")
+   public static boolean customPanoramaEnabled = true;
+
    @SerialEntry(comment = "Disables chat tags, such as [No-Life] from appearing in messages for visual simplicity.")
    public static boolean disableChatTags = false;
 
@@ -101,7 +104,7 @@ public class Config {
 
    private static OptionGroup buildTimerOptions() {
       OptionGroup.Builder group = OptionGroup.createBuilder()
-              .name(Component.literal("Timers"));
+              .name(Component.literal("Custom Enchant Timers"));
 
       BasicTimerManager timerManager = LifestealUtils.getBasicTimerManager();
       if (timerManager == null) {
@@ -213,6 +216,15 @@ public class Config {
 
    public static void setQuickJoinButtonEnabled(boolean enabled) {
       Config.quickJoinButtonEnabled = enabled;
+      HANDLER.save();
+   }
+
+   public static boolean getCustomPanoramaEnabled() {
+      return Config.customPanoramaEnabled;
+   }
+
+   public static void setCustomPanoramaEnabled(boolean enabled) {
+      Config.customPanoramaEnabled = enabled;
       HANDLER.save();
    }
 
@@ -505,6 +517,17 @@ public class Config {
                                               ))
                                               .build())
                                       .binding(true, Config::getCustomSplashes, Config::setCustomSplashes)
+                                      .controller(TickBoxControllerBuilder::create)
+                                      .build()
+                              )
+                              .option(Option.<Boolean>createBuilder()
+                                      .name(Component.literal("Lobby Panorama"))
+                                      .description(OptionDescription.createBuilder()
+                                              .text(MessagingUtils.miniMessage(
+                                                      "Enables a panorama of the Lifesteal 2.0 lobby on the title screen."
+                                              ))
+                                              .build())
+                                      .binding(true, Config::getCustomPanoramaEnabled, Config::setCustomPanoramaEnabled)
                                       .controller(TickBoxControllerBuilder::create)
                                       .build()
                               )

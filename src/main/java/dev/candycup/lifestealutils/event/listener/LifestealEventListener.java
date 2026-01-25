@@ -2,6 +2,7 @@ package dev.candycup.lifestealutils.event.listener;
 
 import dev.candycup.lifestealutils.event.EventPriority;
 import dev.candycup.lifestealutils.event.LSUEvent;
+import dev.candycup.lifestealutils.event.events.*;
 
 /**
  * base interface for all Lifesteal Utils event listeners.
@@ -31,47 +32,47 @@ public interface LifestealEventListener {
     default void handleEvent(LSUEvent event) {
         // dispatch to specific handler based on event type
         if (this instanceof CombatEventListener combatListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.ClientAttackEvent e) {
+            if (event instanceof ClientAttackEvent e) {
                 combatListener.onClientAttack(e);
-            } else if (event instanceof dev.candycup.lifestealutils.event.events.DamageConfirmedEvent e) {
+            } else if (event instanceof DamageConfirmedEvent e) {
                 combatListener.onDamageConfirmed(e);
-            } else if (event instanceof dev.candycup.lifestealutils.event.events.PlayerDamagedEvent e) {
+            } else if (event instanceof PlayerDamagedEvent e) {
                 combatListener.onPlayerDamaged(e);
             }
         }
 
         if (this instanceof ChatEventListener chatListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.ChatMessageReceivedEvent e) {
+            if (event instanceof ChatMessageReceivedEvent e) {
                 chatListener.onChatMessageReceived(e);
-            } else if (event instanceof dev.candycup.lifestealutils.event.events.ChatMessageSentEvent e) {
+            } else if (event instanceof ChatMessageSentEvent e) {
                 chatListener.onChatMessageSent(e);
             }
         }
 
         if (this instanceof TickEventListener tickListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.ClientTickEvent e) {
+            if (event instanceof ClientTickEvent e) {
                 tickListener.onClientTick(e);
             }
         }
 
         if (this instanceof ServerEventListener serverListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.ServerChangeEvent e) {
+            if (event instanceof ServerChangeEvent e) {
                 serverListener.onServerChange(e);
             }
         }
 
         if (this instanceof RenderEventListener renderListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.ItemRenderEvent e) {
+            if (event instanceof ItemRenderEvent e) {
                 renderListener.onItemRender(e);
-            } else if (event instanceof dev.candycup.lifestealutils.event.events.PlayerNameRenderEvent e) {
+            } else if (event instanceof PlayerNameRenderEvent e) {
                 renderListener.onPlayerNameRender(e);
             }
         }
 
         if (this instanceof UIEventListener uiListener) {
-            if (event instanceof dev.candycup.lifestealutils.event.events.TitleScreenInitEvent e) {
+            if (event instanceof TitleScreenInitEvent e) {
                 uiListener.onTitleScreenInit(e);
-            } else if (event instanceof dev.candycup.lifestealutils.event.events.SplashTextRequestEvent e) {
+            } else if (event instanceof SplashTextRequestEvent e) {
                 uiListener.onSplashTextRequest(e);
             }
         }

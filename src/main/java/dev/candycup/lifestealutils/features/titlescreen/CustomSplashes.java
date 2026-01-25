@@ -1,41 +1,43 @@
 package dev.candycup.lifestealutils.features.titlescreen;
 
 import dev.candycup.lifestealutils.Config;
+import dev.candycup.lifestealutils.FeatureFlagController;
 import dev.candycup.lifestealutils.event.EventPriority;
 import dev.candycup.lifestealutils.event.events.SplashTextRequestEvent;
 import dev.candycup.lifestealutils.event.listener.UIEventListener;
+import dev.candycup.lifestealutils.interapi.MessagingUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * provides custom splash texts for the title screen.
+ * reads splashes from the global feature flag payload.
  */
 public final class CustomSplashes implements UIEventListener {
-    private static final ArrayList<String> SPLASH_TEXTS = new ArrayList<>() {{
-        // TP trapper galore
-        add("tpa for team");
-        // Claim shield gimmick
-        add("Your claim shield isn't up yet!");
-        // Newbies repeatedly being confused about road/claim protection
-        add("Why can't I break anything?");
-        // Taking sides on the S2 drunken enchant controversy
-        add("Nerf Drunken");
-        add("Buff Drunken");
-    }};
+   private static final List<String> FALLBACK_SPLASHES = new ArrayList<>() {{
+      add("<yellow>uhoh...</yellow>");
+   }};
 
-    @Override
-    public boolean isEnabled() {
-        return Config.getCustomSplashes();
-    }
+   @Override
+   public boolean isEnabled() {
+      return Config.getCustomSplashes();
+   }
 
-    @Override
-    public EventPriority getPriority() {
-        return EventPriority.NORMAL;
-    }
+   @Override
+   public EventPriority getPriority() {
+      return EventPriority.NORMAL;
+   }
 
-    @Override
-    public void onSplashTextRequest(SplashTextRequestEvent event) {
-        String splash = SPLASH_TEXTS.get((int) (Math.random() * SPLASH_TEXTS.size()));
-        event.setSplashText(splash);
-    }
+   @Override
+   public void onSplashTextRequest(SplashTextRequestEvent event) {
+      List<String> splashes = FeatureFlagController.getSplashes();
+      if (splashes.isEmpty()) {
+         splashes = FALLBACK_SPLASHES;
+      }
+      String splash = splashes.get((int) (Math.random() * splashes.size()));
+      
+      event.setSplashText(MessagingUtils.miniMessageToSplashSafe(splash));
+   }
 }
+

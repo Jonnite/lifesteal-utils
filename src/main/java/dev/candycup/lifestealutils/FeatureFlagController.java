@@ -69,6 +69,9 @@ public final class FeatureFlagController {
          if (parsed.triggers == null) {
             parsed.triggers = Collections.emptyMap();
          }
+         if (parsed.splashes == null) {
+            parsed.splashes = Collections.emptyList();
+         }
          return parsed;
       } catch (Exception e) {
          LOGGER.error("[lsu-flags] failed to parse feature flag payload; using empty payload", e);
@@ -107,6 +110,15 @@ public final class FeatureFlagController {
 
    public static String getTrigger(String triggerKey) {
       return payload.triggers.get(triggerKey);
+   }
+
+   /**
+    * retrieves the list of splash texts from the remote payload.
+    *
+    * @return the list of splash texts, or an empty list if none are configured
+    */
+   public static List<String> getSplashes() {
+      return new ArrayList<>(payload.splashes);
    }
 
    private static FeatureFlagRule selectRule(String featureKey) {
@@ -198,6 +210,7 @@ public final class FeatureFlagController {
       Map<String, List<FeatureFlagRule>> features = Collections.emptyMap();
       List<FeatureFlagTimer> basicTimers = Collections.emptyList();
       Map<String, String> triggers = Collections.emptyMap();
+      List<String> splashes = Collections.emptyList();
    }
 
    private static final class FeatureFlagRule {
