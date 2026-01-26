@@ -33,6 +33,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -179,6 +180,14 @@ public final class LifestealUtils implements ClientModInitializer {
             if (localPlayer == null) return;
             HitResult hitResult = client.hitResult;
             if (hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player targetPlayer) {
+               if (targetPlayer.hasEffect(MobEffects.INVISIBILITY)) {
+                  return;
+               }
+
+               if (targetPlayer.isCreative() || targetPlayer.isSpectator()) {
+                  return;
+               }
+
                Boolean added = Alliances.toggleAlliance(targetPlayer);
                String name = targetPlayer.getName().getString();
                if (added == null) {
