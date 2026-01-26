@@ -180,11 +180,15 @@ public final class LifestealUtils implements ClientModInitializer {
             if (localPlayer == null) return;
             HitResult hitResult = client.hitResult;
             if (hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player targetPlayer) {
-               if (targetPlayer.hasEffect(MobEffects.INVISIBILITY)) {
+               boolean isInvisible = targetPlayer.isInvisible();
+
+               if (isInvisible) {
                   return;
                }
 
-               if (targetPlayer.isCreative() || targetPlayer.isSpectator()) {
+               boolean isCreative = targetPlayer.isCreative();
+               boolean isSpectator = targetPlayer.isSpectator();
+               if (isCreative || isSpectator) {
                   return;
                }
 
