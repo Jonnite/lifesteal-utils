@@ -41,4 +41,4 @@ replay_*.log
 
 # private internal tool for managing modrinth releases
 /uploader/
-/mc/
+/.mc/

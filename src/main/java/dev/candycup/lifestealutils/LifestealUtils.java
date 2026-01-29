@@ -19,6 +19,7 @@ import dev.candycup.lifestealutils.features.combat.UnbrokenChainTracker;
 import dev.candycup.lifestealutils.features.timers.BasicTimerManager;
 import dev.candycup.lifestealutils.interapi.MessagingUtils;
 import dev.candycup.lifestealutils.ui.HudElementEditor;
+import dev.candycup.lifestealutils.ui.RadarScreen;
 import net.fabricmc.loader.api.FabricLoader;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.fabricmc.api.ClientModInitializer;
@@ -37,6 +38,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+
+import java.util.Objects;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +54,7 @@ public final class LifestealUtils implements ClientModInitializer {
    private static KeyMapping addAllianceTargetKeyBinding;
    private static int pendingConfigOpenTicks = -1;
    private static int pendingHudEditorOpenTicks = -1;
+   private static int pendingRadarOpenTicks = -1;
 
    private static UnbrokenChainTracker unbrokenChainTracker;
    private static BasicTimerManager basicTimerManager;
@@ -103,6 +107,17 @@ public final class LifestealUtils implements ClientModInitializer {
 
       autoJoinLifesteal = new AutoJoinLifesteal();
       EventBus.getInstance().register(autoJoinLifesteal);
+
+      // poi waypoint tracker
+      dev.candycup.lifestealutils.features.qol.PoiWaypointTracker poiWaypointTracker = new dev.candycup.lifestealutils.features.qol.PoiWaypointTracker();
+      EventBus.getInstance().register(poiWaypointTracker);
+      HudElementManager.register(poiWaypointTracker.getHudDefinition());
+
+      // poi directional indicator (renders with the waypoint tracker)
+      dev.candycup.lifestealutils.features.qol.PoiDirectionalIndicator poiDirectionalIndicator =
+              new dev.candycup.lifestealutils.features.qol.PoiDirectionalIndicator(poiWaypointTracker);
+      HudDisplayLayer.setPoiDirectionalIndicator(poiDirectionalIndicator);
+      dev.candycup.lifestealutils.ui.HudElementEditor.setPoiDirectionalIndicator(poiDirectionalIndicator);
 
       HudElementRegistry.attachElementAfter(
               VanillaHudElements.CHAT,
@@ -170,6 +185,16 @@ public final class LifestealUtils implements ClientModInitializer {
                pendingHudEditorOpenTicks--;
             }
          }
+         if (pendingRadarOpenTicks >= 0) {
+            if (pendingRadarOpenTicks == 0) {
+               if (client.screen == null) {
+                  client.setScreen(new RadarScreen());
+               }
+               pendingRadarOpenTicks = -1;
+            } else {
+               pendingRadarOpenTicks--;
+            }
+         }
          if (openHudEditorKeyBinding.consumeClick()) {
             if (client.screen != null) return;
             pendingHudEditorOpenTicks = 1;
@@ -227,6 +252,12 @@ public final class LifestealUtils implements ClientModInitializer {
                                     client.execute(() -> pendingHudEditorOpenTicks = 1);
                                     return 1;
                                  }))
+                         .then(ClientCommandManager.literal("radar")
+                                 .executes(commandContext -> {
+                                    Minecraft client = Minecraft.getInstance();
+                                    client.execute(() -> pendingRadarOpenTicks = 1);
+                                    return 1;
+                                 }))
                          .then(ClientCommandManager.literal("alliances")
                                  .executes(commandContext -> {
                                     Alliances.showAllianceList();
@@ -265,13 +296,52 @@ public final class LifestealUtils implements ClientModInitializer {
                                                     });
                                                     return 1;
                                                  })))
+
                                  .then(ClientCommandManager.literal("clear")
                                          .executes(commandContext -> {
                                             Alliances.clearAlliances();
                                             MessagingUtils.showMiniMessage(Alliances.withDisabledWarning("<yellow>Cleared all alliance members.</yellow>"));
                                             return 1;
                                          })))
-                         .then(ClientCommandManager.literal("support")
+                         .then(ClientCommandManager.literal("track-poi")
+                                 .then(ClientCommandManager.argument("poi", StringArgumentType.greedyString())
+                                         .suggests((context, builder) -> {
+                                             String remaining = builder.getRemainingLowerCase();
+                                             for (dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition p : dev.candycup.lifestealutils.FeatureFlagController.getPois()) {
+                                                if (p == null || p.name == null || p.name.isBlank()) continue;
+                                                String nameLower = p.name.toLowerCase();
+                                                if (remaining.isBlank() || nameLower.contains(remaining)) {
+                                                   builder.suggest(p.name);
+                                                }
+                                             }
+                                             return builder.buildFuture();
+                                         })
+                                         .executes(commandContext -> {
+                                            String poiArg = StringArgumentType.getString(commandContext, "poi").trim();
+                                            if (poiArg.equalsIgnoreCase("none") || poiArg.equalsIgnoreCase("clear") || poiArg.equalsIgnoreCase("off")) {
+                                                return handleUntrackPoi();
+                                            }
+
+                                            dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition matched = dev.candycup.lifestealutils.FeatureFlagController.getPois().stream()
+                                                    .filter(p -> p.name != null && p.name.equalsIgnoreCase(poiArg))
+                                                    .findFirst().orElse(null);
+                                            if (matched == null) {
+                                               MessagingUtils.showMiniMessage("<red>Unknown POI: <white>" + MiniMessage.miniMessage().escapeTags(poiArg) + "</white></red>");
+                                               return 0;
+                                            }
+
+                                            dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition currentTracked = resolveCurrentTrackedPoi();
+                                            if (currentTracked != null && Objects.equals(currentTracked.id, matched.id)) {
+                                               return handleUntrackPoi();
+                                            }
+
+                                            Config.setPoiTrackedId(matched.id);
+                                            MessagingUtils.showMiniMessage("<green>Now tracking POI: <white>" + MiniMessage.miniMessage().escapeTags(matched.name) + "</white></green>");
+                                            return 1;
+                                         })))
+                        .then(ClientCommandManager.literal("untrack-poi")
+                                .executes(commandContext -> handleUntrackPoi()))
+                         .then(ClientCommandManager.literal("utilities")
                                  .then(ClientCommandManager.literal("copy-client-info-to-clipboard")
                                          .executes(commandContext -> {
                                             Minecraft client = Minecraft.getInstance();
@@ -309,6 +379,104 @@ public final class LifestealUtils implements ClientModInitializer {
 
    public static BasicTimerManager getBasicTimerManager() {
       return basicTimerManager;
+   }
+
+   /**
+    * Clears any tracked POI and reports the result to the user.
+    *
+    * @return command result code
+    */
+   private static int handleUntrackPoi() {
+      dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition currentTracked = resolveCurrentTrackedPoi();
+      String trackedName = currentTracked != null && currentTracked.name != null && !currentTracked.name.isBlank()
+              ? currentTracked.name
+              : "POI";
+      String escapedName = MiniMessage.miniMessage().escapeTags(trackedName);
+
+      Config.setPoiTrackedId("");
+
+      if (Config.isPoiAlwaysShowClosest()) {
+         MessagingUtils.showMiniMessage("<yellow>No longer tracking <white>" + escapedName + "</white>! Reverting to tracking the closest POI.</yellow>");
+      } else {
+         MessagingUtils.showMiniMessage("<yellow>No longer tracking <white>" + escapedName + "</white>!</yellow>");
+      }
+      return 1;
+   }
+
+   /**
+    * Resolves the currently tracked POI from configuration and player position.
+    *
+    * @return the currently tracked POI, or null if none can be resolved
+    */
+   private static dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition resolveCurrentTrackedPoi() {
+      String configuredId = Config.getPoiTrackedId();
+      if (configuredId != null && !configuredId.isBlank()) {
+         return resolvePoiById(configuredId);
+      }
+      if (!Config.isPoiAlwaysShowClosest()) {
+         return null;
+      }
+      return resolveClosestPoi();
+   }
+
+   /**
+    * Finds a POI by its id.
+    *
+    * @param id the poi id
+    * @return the matching poi, or null
+    */
+   private static dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition resolvePoiById(String id) {
+      for (dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition p : dev.candycup.lifestealutils.FeatureFlagController.getPois()) {
+         if (p == null || p.id == null) continue;
+         if (p.id.equals(id)) {
+            return p;
+         }
+      }
+      return null;
+   }
+
+   /**
+    * Resolves the closest POI in the player's current dimension.
+    *
+    * @return the closest poi, or null if unavailable
+    */
+   private static dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition resolveClosestPoi() {
+      Minecraft client = Minecraft.getInstance();
+      if (client.player == null || client.level == null) {
+         return null;
+      }
+
+      String currentDimension = null;
+      try {
+         if (client.level.dimension() != null) {
+            currentDimension = client.level.dimension().toString();
+         }
+      } catch (Exception ignore) {
+      }
+
+      double px = client.player.getX();
+      double pz = client.player.getZ();
+
+      dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition best = null;
+      double bestDist = Double.MAX_VALUE;
+      for (dev.candycup.lifestealutils.FeatureFlagController.PoiDefinition poi : dev.candycup.lifestealutils.FeatureFlagController.getPois()) {
+         if (poi == null) continue;
+         if (poi.dimension != null && currentDimension != null) {
+            if (!poi.dimension.equals(currentDimension) && !currentDimension.contains(poi.dimension)) {
+               continue;
+            }
+         }
+
+         double dx = poi.x - px;
+         double dz = poi.z - pz;
+         double dist = Math.sqrt(dx * dx + dz * dz);
+         if (dist < bestDist) {
+            bestDist = dist;
+            best = poi;
+         }
+      }
+
+      return best;
    }
 
 }

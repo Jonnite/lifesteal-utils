@@ -89,8 +89,73 @@ public class Config {
    @SerialEntry(comment = "Custom format for the unbroken chain counter display")
    public static String chainCounterFormat = "";
 
+   @SerialEntry(comment = "Enable POI waypoints (directional HUD indicator)")
+   public static boolean poiWaypointsEnabled = true;
+
+   @SerialEntry(comment = "Show directional arrow indicator pointing toward tracked POI")
+   public static boolean poiDirectionalIndicatorEnabled = true;
+
+   @SerialEntry(comment = "How the POI HUD indicator is shown (text, compass, both, or none)")
+   public static PoiHudIndicatorMode poiHudIndicatorMode = null;
+
+   @SerialEntry(comment = "Unless you've configured to track a specific POI, show the closest one")
+   public static boolean poiAlwaysShowClosest = false;
+
+   @SerialEntry(comment = "Custom format for the POI waypoint display")
+   public static String poiWaypointFormat = "<gray><bold>{{poi}}</bold>: {{distance}} blocks away";
+
+   @SerialEntry(comment = "Configured POI id to track (empty = none)")
+   public static String poiTrackedId = "";
+
    @SerialEntry(comment = "Automatically join the Lifesteal gamemode when connecting to the lifesteal.net hub")
    public static boolean autoJoinLifestealOnHub = false;
+
+   /**
+    * Describes how the POI HUD indicator should be displayed.
+    */
+   public enum PoiHudIndicatorMode {
+      ONLY_TEXT("lsu.option.poiHudIndicatorMode.onlyText", true, false),
+      TEXT_AND_COMPASS("lsu.option.poiHudIndicatorMode.textAndCompass", true, true),
+      ONLY_COMPASS("lsu.option.poiHudIndicatorMode.onlyCompass", false, true),
+      NONE("lsu.option.poiHudIndicatorMode.none", false, false);
+
+      private final String translationKey;
+      private final boolean showsText;
+      private final boolean showsCompass;
+
+      PoiHudIndicatorMode(String translationKey, boolean showsText, boolean showsCompass) {
+         this.translationKey = translationKey;
+         this.showsText = showsText;
+         this.showsCompass = showsCompass;
+      }
+
+      /**
+       * Gets the translation key for this mode.
+       *
+       * @return the translation key
+       */
+      public String getTranslationKey() {
+         return translationKey;
+      }
+
+      /**
+       * Checks if this mode displays the text label.
+       *
+       * @return true if text should be shown
+       */
+      public boolean showsText() {
+         return showsText;
+      }
+
+      /**
+       * Checks if this mode displays the compass indicator.
+       *
+       * @return true if compass should be shown
+       */
+      public boolean showsCompass() {
+         return showsCompass;
+      }
+   }
 
    private static OptionDescription descriptionWithRemoteReasoning(String baseMiniMessage, String featureKey) {
       OptionDescription.Builder builder = OptionDescription.createBuilder()
@@ -417,6 +482,124 @@ public class Config {
       }
    }
 
+   public static boolean getPoiWaypointsEnabled() {
+      Boolean forced = FeatureFlagController.getForcedState("poiWaypointsEnabled");
+      if (forced != null) return forced;
+      return poiWaypointsEnabled;
+   }
+
+   public static void setPoiWaypointsEnabled(boolean enabled) {
+      poiWaypointsEnabled = enabled;
+      HANDLER.save();
+   }
+
+   /**
+    * Retrieves the configured POI HUD indicator mode.
+    *
+    * @return the indicator mode
+    */
+   public static PoiHudIndicatorMode getPoiHudIndicatorMode() {
+      ensurePoiHudIndicatorMode();
+      return poiHudIndicatorMode;
+   }
+
+   /**
+    * Updates the POI HUD indicator mode.
+    *
+    * @param mode the new indicator mode
+    */
+   public static void setPoiHudIndicatorMode(PoiHudIndicatorMode mode) {
+      poiHudIndicatorMode = mode == null ? PoiHudIndicatorMode.TEXT_AND_COMPASS : mode;
+      HANDLER.save();
+   }
+
+   /**
+    * Checks if the POI HUD text should be displayed.
+    *
+    * @return true if the text should render
+    */
+   public static boolean isPoiHudTextEnabled() {
+      if (!getPoiWaypointsEnabled()) {
+         return false;
+      }
+      return getPoiHudIndicatorMode().showsText();
+   }
+
+   /**
+    * Checks if the POI HUD compass indicator should be displayed.
+    *
+    * @return true if the compass should render
+    */
+   public static boolean isPoiHudCompassEnabled() {
+      if (!getPoiWaypointsEnabled()) {
+         return false;
+      }
+      return getPoiHudIndicatorMode().showsCompass();
+   }
+
+   public static boolean isPoiDirectionalIndicatorEnabled() {
+      return isPoiHudCompassEnabled();
+   }
+
+   public static void setPoiDirectionalIndicatorEnabled(boolean enabled) {
+      poiDirectionalIndicatorEnabled = enabled;
+      if (poiHudIndicatorMode == null) {
+         poiHudIndicatorMode = enabled ? PoiHudIndicatorMode.TEXT_AND_COMPASS : PoiHudIndicatorMode.ONLY_TEXT;
+      }
+      HANDLER.save();
+   }
+
+   public static boolean isPoiAlwaysShowClosest() {
+      Boolean forced = FeatureFlagController.getForcedState("poiAlwaysShowClosest");
+      if (forced != null) return forced;
+      return poiAlwaysShowClosest;
+   }
+
+   public static void setPoiAlwaysShowClosest(boolean enabled) {
+      poiAlwaysShowClosest = enabled;
+      HANDLER.save();
+   }
+
+   public static String getPoiWaypointFormat(String fallback) {
+      if (poiWaypointFormat == null || poiWaypointFormat.isBlank()) {
+         return fallback;
+      }
+      return poiWaypointFormat;
+   }
+
+   public static void setPoiWaypointFormat(String format) {
+      poiWaypointFormat = format;
+      HANDLER.save();
+   }
+
+   public static void ensurePoiWaypointFormat(String fallback) {
+      if (poiWaypointFormat == null || poiWaypointFormat.isBlank()) {
+         poiWaypointFormat = fallback;
+      }
+   }
+
+   /**
+    * Ensures the POI HUD indicator mode is set, using legacy values if needed.
+    */
+   public static void ensurePoiHudIndicatorMode() {
+      if (poiHudIndicatorMode != null) {
+         return;
+      }
+      poiHudIndicatorMode = poiDirectionalIndicatorEnabled
+              ? PoiHudIndicatorMode.TEXT_AND_COMPASS
+              : PoiHudIndicatorMode.ONLY_TEXT;
+   }
+
+   public static String getPoiTrackedId() {
+      if (poiTrackedId == null) return "";
+      return poiTrackedId;
+   }
+
+   public static void setPoiTrackedId(String id) {
+      poiTrackedId = id == null ? "" : id;
+      HANDLER.save();
+   }
+
    public static boolean isAutoJoinLifestealOnHub() {
       Boolean forcedState = FeatureFlagController.getForcedState("autoJoinLifestealOnHub");
       if (forcedState != null) {
@@ -433,6 +616,7 @@ public class Config {
    public static void load() {
       FeatureFlagController.ensureLoaded();
       HANDLER.load();
+      ensurePoiHudIndicatorMode();
    }
 
    public static YetAnotherConfigLib getConfig() {
@@ -519,6 +703,59 @@ public class Config {
                                               .range(0.5f, 5.0f)
                                               .step(0.1f)
                                               .valueFormatter(val -> Component.literal(val + "x")))
+                                      .build()
+                              )
+                              .build()
+                      )
+                      .group(OptionGroup.createBuilder()
+                              .name(Component.translatable("lsu.group.pois"))
+                              .option(Option.<Boolean>createBuilder()
+                                      .name(Component.translatable("lsu.option.poiWaypointsEnabled.name"))
+                                      .description(OptionDescription.createBuilder()
+                                              .text(MessagingUtils.miniMessage(
+                                                      "Enables the POI directional indicator in your HUD."
+                                              ))
+                                              .build())
+                                      .binding(true, Config::getPoiWaypointsEnabled, Config::setPoiWaypointsEnabled)
+                                      .controller(TickBoxControllerBuilder::create)
+                                      .available(FeatureFlagController.isFeatureAvailable("poiWaypointsEnabled"))
+                                      .build()
+                              )
+                              .option(Option.<PoiHudIndicatorMode>createBuilder()
+                                 .name(Component.translatable("lsu.option.poiHudIndicatorMode.name"))
+                                 .description(OptionDescription.createBuilder()
+                                    .text(MessagingUtils.miniMessage(
+                                       "Controls how the POI tracker is shown in your HUD.\n\n" +
+                                          "This setting is ignored when POI waypoints are disabled."
+                                    ))
+                                    .build())
+                                 .binding(PoiHudIndicatorMode.TEXT_AND_COMPASS, Config::getPoiHudIndicatorMode, Config::setPoiHudIndicatorMode)
+                                 .controller(opt -> EnumControllerBuilder.create(opt)
+                                    .enumClass(PoiHudIndicatorMode.class)
+                                    .formatValue(mode -> Component.translatable(mode.getTranslationKey())))
+                                 .build()
+                              )
+                              .option(Option.<Boolean>createBuilder()
+                                      .name(Component.translatable("lsu.option.poiAlwaysShowClosest.name"))
+                                      .description(OptionDescription.createBuilder()
+                                              .text(MessagingUtils.miniMessage(
+                                                      "Unless you've configured to track a specific POI, the HUD will always track the closest one to you."
+                                              ))
+                                              .build())
+                                      .binding(false, Config::isPoiAlwaysShowClosest, Config::setPoiAlwaysShowClosest)
+                                      .controller(TickBoxControllerBuilder::create)
+                                      .available(FeatureFlagController.isFeatureAvailable("poiAlwaysShowClosest"))
+                                      .build()
+                              )
+                              .option(Option.<String>createBuilder()
+                                      .name(Component.translatable("lsu.option.poiWaypointFormat.name"))
+                                      .description(OptionDescription.createBuilder()
+                                              .text(MessagingUtils.miniMessage(
+                                                      "The format of the waypoint tracker in your hud\n\nDefault: <gray><bold>{{poi}}</bold>: {{distance}} blocks away"
+                                              ))
+                                              .build())
+                                      .binding(Config.poiWaypointFormat, () -> Config.getPoiWaypointFormat("<gray><bold>{{poi}}</bold>: {{distance}} blocks away"), Config::setPoiWaypointFormat)
+                                      .controller(StringControllerBuilder::create)
                                       .build()
                               )
                               .build()

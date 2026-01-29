@@ -1,6 +1,8 @@
 package dev.candycup.lifestealutils.ui;
 
+import dev.candycup.lifestealutils.features.qol.PoiDirectionalIndicator;
 import dev.candycup.lifestealutils.hud.HudElementManager;
+import dev.candycup.lifestealutils.hud.HudPosition;
 import dev.candycup.lifestealutils.interapi.MessagingUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.Minecraft;
@@ -20,8 +22,19 @@ public class HudElementEditor extends Screen {
    private static float dragOffsetY;
    private static boolean lastLeftDown;
 
+   private static PoiDirectionalIndicator poiDirectionalIndicator;
+
    public HudElementEditor(Component component) {
       super(component);
+   }
+
+   /**
+    * Sets the POI directional indicator for preview rendering in the editor.
+    *
+    * @param indicator the directional indicator to render
+    */
+   public static void setPoiDirectionalIndicator(PoiDirectionalIndicator indicator) {
+      poiDirectionalIndicator = indicator;
    }
 
    @Override
@@ -81,6 +94,55 @@ public class HudElementEditor extends Screen {
             drawContext.fill(0, y, guiWidth, y + 1, color);
          }
 
+         // render and handle the directional indicator as a draggable element
+         if (poiDirectionalIndicator != null) {
+            poiDirectionalIndicator.ensurePositionRegistered(guiWidth, guiHeight);
+            poiDirectionalIndicator.render(drawContext, guiWidth, guiHeight);
+
+            // get indicator position and size for hit testing
+            Identifier indicatorId = poiDirectionalIndicator.getHudElementId();
+            int indicatorSize = poiDirectionalIndicator.getTextureSize();
+            HudPosition indicatorPos = HudElementManager.positionFor(indicatorId);
+            int indicatorX = pixelCoordinate(indicatorPos.x(), guiWidth, indicatorSize);
+            int indicatorY = pixelCoordinate(indicatorPos.y(), guiHeight, indicatorSize);
+
+            boolean hoveringIndicator = mouseX >= indicatorX && mouseX <= indicatorX + indicatorSize
+                    && mouseY >= indicatorY && mouseY <= indicatorY + indicatorSize;
+
+            // start dragging indicator
+            if (leftDown && !lastLeftDown && hoveringIndicator) {
+               draggingId = indicatorId;
+               dragOffsetX = (float) mouseX - indicatorX;
+               dragOffsetY = (float) mouseY - indicatorY;
+            }
+
+            boolean isDraggingIndicator = draggingId != null && draggingId.equals(indicatorId);
+            if (isDraggingIndicator) {
+               HudElementManager.updatePositionFromPixels(
+                       indicatorId,
+                       (float) mouseX - dragOffsetX,
+                       (float) mouseY - dragOffsetY,
+                       guiWidth,
+                       guiHeight,
+                       indicatorSize,
+                       indicatorSize
+               );
+            }
+
+            // draw indicator bounding box when hovering or dragging
+            if (hoveringIndicator || isDraggingIndicator) {
+               int boxLeft = indicatorX - 2;
+               int boxTop = indicatorY - 2;
+               int boxRight = indicatorX + indicatorSize + 2;
+               int boxBottom = indicatorY + indicatorSize + 2;
+               int strokeColor = isDraggingIndicator ? 0xC066FF66 : 0xC0FFFFFF;
+               drawContext.fill(boxLeft, boxTop, boxRight, boxTop + 1, strokeColor);
+               drawContext.fill(boxLeft, boxBottom - 1, boxRight, boxBottom, strokeColor);
+               drawContext.fill(boxLeft, boxTop, boxLeft + 1, boxBottom, strokeColor);
+               drawContext.fill(boxRight - 1, boxTop, boxRight, boxBottom, strokeColor);
+            }
+         }
+
          List<HudElementManager.RenderedHudElement> elements = HudElementManager.renderables(minecraft.font, guiWidth, guiHeight);
          for (HudElementManager.RenderedHudElement element : elements) {
             HudElementManager.RenderedHudElement current = element;
@@ -130,5 +192,14 @@ public class HudElementEditor extends Screen {
 
          lastLeftDown = leftDown;
       };
+   }
+
+   /**
+    * Calculates pixel coordinate from normalized position.
+    */
+   private static int pixelCoordinate(float normalized, int guiSize, int elementSize) {
+      int available = Math.max(guiSize - elementSize, 0);
+      float clamped = Mth.clamp(normalized, 0F, 1F);
+      return Mth.floor(clamped * available);
    }
 }

@@ -113,6 +113,22 @@ public final class FeatureFlagController {
    }
 
    /**
+    * retrieves POI definitions from the remote payload.
+    * returns an empty list if none are configured.
+    */
+   public static List<PoiDefinition> getPois() {
+      ensureLoaded();
+      List<PoiDefinition> list = new ArrayList<>();
+      for (FeatureFlagPoi p : payload.pois) {
+         if (p == null || p.id == null || p.name == null) continue;
+         double x = p.x != null ? p.x : 0.0;
+         double y = p.y != null ? p.y : 0.0;
+         double z = p.z != null ? p.z : 0.0;
+         list.add(new PoiDefinition(p.id, p.name, x, y, z, p.dimension));
+      }
+      return list;
+   }
+   /**
     * retrieves the list of splash texts from the remote payload.
     *
     * @return the list of splash texts, or an empty list if none are configured
@@ -211,6 +227,7 @@ public final class FeatureFlagController {
       List<FeatureFlagTimer> basicTimers = Collections.emptyList();
       Map<String, String> triggers = Collections.emptyMap();
       List<String> splashes = Collections.emptyList();
+      List<FeatureFlagPoi> pois = Collections.emptyList();
    }
 
    private static final class FeatureFlagRule {
@@ -261,6 +278,33 @@ public final class FeatureFlagController {
             return timerFormatSeconds;
          }
          return -1;
+      }
+   }
+
+   private static final class FeatureFlagPoi {
+      String id;
+      String name;
+      Double x;
+      Double y;
+      Double z;
+      String dimension;
+   }
+
+   public static final class PoiDefinition {
+      public final String id;
+      public final String name;
+      public final double x;
+      public final double y;
+      public final double z;
+      public final String dimension;
+
+      public PoiDefinition(String id, String name, double x, double y, double z, String dimension) {
+         this.id = id;
+         this.name = name;
+         this.x = x;
+         this.y = y;
+         this.z = z;
+         this.dimension = dimension;
       }
    }
 }
